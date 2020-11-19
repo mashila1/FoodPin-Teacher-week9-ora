@@ -10,61 +10,52 @@ import UIKit
 
 class RestaurantTableViewController: UITableViewController {
 
-    var restaurantNames = ["Cafe Deadend", "Homei", "Teakha", "Cafe Loisl", "Petite Oyster", "For Kee Restaurant", "Po's Atelier", "Bourke Street Bakery", "Haigh's Chocolate", "Palomino Espresso", "Upstate", "Traif", "Graham Avenue Meats And Deli", "Waffle & Wolf", "Five Leaves", "Cafe Lore", "Confessional", "Barrafina", "Donostia", "Royal Oak", "CASK Pub and Kitchen"]
-    
-    var restaurantImages = ["cafedeadend", "homei", "teakha", "cafeloisl", "petiteoyster", "forkeerestaurant", "posatelier", "bourkestreetbakery", "haighschocolate", "palominoespresso", "upstate", "traif", "grahamavenuemeats", "wafflewolf", "fiveleaves", "cafelore", "confessional", "barrafina", "donostia", "royaloak", "caskpubkitchen"]
-    
-    var restaurantLocations = ["Hong Kong", "Hong Kong", "Hong Kong", "Hong Kong", "Hong Kong", "Hong Kong", "Hong Kong", "Sydney", "Sydney", "Sydney", "New York", "New York", "New York", "New York", "New York", "New York", "New York", "London", "London", "London", "London"]
-    
-    var restaurantTypes = ["Coffee & Tea Shop", "Cafe", "Tea House", "Austrian / Causual Drink", "French", "Bakery", "Bakery", "Chocolate", "Cafe", "American / Seafood", "American", "American", "Breakfast & Brunch", "Coffee & Tea", "Coffee & Tea", "Latin American", "Spanish", "Spanish", "Spanish", "British", "Thai"]
-    
-    var restaurantIsVisited = Array(repeating: false, count: 21)
-    
-    
-    override func viewDidLoad() {
+    var restaurants:[Restaurant] = []
+    override func viewDidLoad(){
         super.viewDidLoad()
-
+        Restaurant.generateData(sourceArray: &restaurants)
         navigationController?.navigationBar.prefersLargeTitles = true
-        
     }
+    
 
+    
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return restaurantNames.count
+        return restaurants.count
     }
-
+    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cellIdentifier = "datacell"
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! RestaurantTableViewCell
-
-        // Configure the cell...
-        cell.nameLabel.text = restaurantNames[indexPath.row] //optioinal chaining
-        cell.locationLabel.text = restaurantLocations[indexPath.row]
-        cell.typeLabel.text = restaurantTypes[indexPath.row]
-        cell.thumbnailImageView.image = UIImage(named: restaurantImages[indexPath.row])
         
-        if restaurantIsVisited[indexPath.row] {
-        cell.accessoryType = .checkmark
+        // Configure the cell...
+        cell.nameLabel.text = restaurants[indexPath.row].name //optioinal chaining
+        cell.locationLabel.text = restaurants[indexPath.row].location
+        cell.typeLabel.text = restaurants[indexPath.row].type
+        cell.thumbnailImageView.image = UIImage(named: restaurants[indexPath.row].image)
+        
+        if restaurants[indexPath.row].isVisited {
+            cell.accessoryType = .checkmark
         } else {
-        cell.accessoryType = .none
+            cell.accessoryType = .none
         }
-
+        
         //cell.accessoryType = restaurantIsVisited[indexPath.row] ? .checkmark : .none
         
-         
+        
         return cell
     }
     
-
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         // Create an option menu as an action sheet
@@ -76,7 +67,7 @@ class RestaurantTableViewController: UITableViewController {
                 popoverController.sourceRect = cell.bounds
             }
         }
-
+        
         // Add Call action
         let callActionHandler = { (action:UIAlertAction!) -> Void in
             let alertMessage = UIAlertController(title: "Service Unavailable", message: "Sorry, the call feature is not available yet. Please retry later.", preferredStyle: .alert)
@@ -93,18 +84,18 @@ class RestaurantTableViewController: UITableViewController {
             
             let cell = tableView.cellForRow(at: indexPath)
             cell?.accessoryType = .checkmark
-            self.restaurantIsVisited[indexPath.row] = true
+            self.restaurants[indexPath.row].isVisited = true
         })
         optionMenu.addAction(checkInAction)
-
+        
         //add undo check-in action
         let uncheckInAction = UIAlertAction(title: "Undo Check in", style: .default, handler: {
             (action:UIAlertAction!) -> Void in
             
             let cell = tableView.cellForRow(at: indexPath)
-            if self.restaurantIsVisited[indexPath.row] {  //if ckecked
+            if self.restaurants[indexPath.row].isVisited {  //if ckecked
                 cell?.accessoryType = .none
-                self.restaurantIsVisited[indexPath.row] = false
+                self.restaurants[indexPath.row].isVisited = false
             }
         })
         optionMenu.addAction(uncheckInAction)
@@ -127,12 +118,7 @@ class RestaurantTableViewController: UITableViewController {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, sourceView, completionHandler) in
             // Delete the row from the data source
-            self.restaurantNames.remove(at: indexPath.row)
-            self.restaurantLocations.remove(at: indexPath.row)
-            self.restaurantTypes.remove(at: indexPath.row)
-            self.restaurantIsVisited.remove(at: indexPath.row)
-            self.restaurantImages.remove(at: indexPath.row)
-            
+            self.restaurants.remove(at: indexPath.row)
             self.tableView.deleteRows(at: [indexPath], with: .fade)
             
             // Call completion handler with true to indicate
@@ -140,8 +126,8 @@ class RestaurantTableViewController: UITableViewController {
         }
         
         let shareAction = UIContextualAction(style: .normal, title: "Share") { (action, sourceView, completionHandler) in
-            let defaultText = "Just checking in at " + self.restaurantNames[indexPath.row]
-
+            let defaultText = "Just checking in at " + self.restaurants[indexPath.row].name
+            
             let activityController = UIActivityViewController(activityItems: [defaultText], applicationActivities: nil)
             self.present(activityController, animated: true, completion: nil)
             completionHandler(true)
@@ -167,13 +153,13 @@ class RestaurantTableViewController: UITableViewController {
     let checkInAction = UIContextualAction(style: .normal, title: "Check-in") { (action, sourceView, completionHandler) in
                 
     let cell = tableView.cellForRow(at: indexPath) as! RestaurantTableViewCell
-    self.restaurantIsVisited[indexPath.row] = (self.restaurantIsVisited[indexPath.row]) ? false : true
-    cell.accessoryType = self.restaurantIsVisited[indexPath.row] ? .checkmark : .none
+        self.restaurants[indexPath.row].isVisited = (self.restaurants[indexPath.row].isVisited) ? false : true
+        cell.accessoryType = self.restaurants[indexPath.row].isVisited ? .checkmark : .none
                 
     completionHandler(true)
     }
             
-    let checkInIcon = restaurantIsVisited[indexPath.row] ? "arrow.uturn.left" : "checkmark"
+        let checkInIcon = restaurants[indexPath.row].isVisited ? "arrow.uturn.left" : "checkmark"
     checkInAction.backgroundColor = UIColor(red: 38.0/255.0, green: 162.0/255.0, blue: 78.0/255.0, alpha: 1.0)
     checkInAction.image = UIImage(systemName: checkInIcon)
             
@@ -186,7 +172,7 @@ class RestaurantTableViewController: UITableViewController {
         if segue.identifier == "showRestaurantDetail" {
                 if let indexPath = tableView.indexPathForSelectedRow {
                     let destinationController = segue.destination as! restaurantDetailViewController
-                    destinationController.restaurantImageName = restaurantImages[indexPath.row]
+                    destinationController.restaurantImageName = restaurants[indexPath.row].image
                 }
         }
     }

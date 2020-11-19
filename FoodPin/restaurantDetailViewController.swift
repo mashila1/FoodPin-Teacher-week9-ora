@@ -11,7 +11,7 @@ import UIKit
 class restaurantDetailViewController: UIViewController {
 
     @IBOutlet var restaurantImageView: UIImageView!
-        
+    
     var restaurantImageName = ""
 
     
